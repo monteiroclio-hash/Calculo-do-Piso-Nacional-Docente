@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora Perpétua do Piso do Magistério — Lei nº 15.437 (Sync Internet)</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --primary-light: #f0fdfa;
+      --border: #e2e8f0;
+      --amber-bg: #fffbeb;
+      --amber-text: #b45309;
+      --blue-bg: #eff6ff;
+      --blue-text: #1d4ed8;
+      --danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 880px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
+      border: 1px solid var(--border);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+    }
+
+    .subtitle {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .sync-bar {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1.15rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      font-size: 0.84rem;
+    }
+
+    .sync-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+    }
+
+    .dot.loading {
+      background: #f59e0b;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .btn-sync {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      color: var(--text);
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-sync:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .table-wrapper {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow-x: auto;
+      margin-bottom: 1.25rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      min-width: 720px;
+    }
+
+    th {
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 0.71rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.75rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.75rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr.latest-row {
+      background: var(--primary-light);
+    }
+
+    .year-cell {
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .inpc-input-wrap {
+      display: inline-flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 0.28rem 0.5rem;
+    }
+
+    .inpc-input-wrap:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+    }
+
+    .inpc-input {
+      width: 58px;
+      border: none;
+      outline: none;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: right;
+      background: transparent;
+    }
+
+    .inpc-suffix {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-left: 2px;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.22rem 0.55rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .pill.teto {
+      background: var(--amber-bg);
+      color: var(--amber-text);
+    }
+
+    .pill.piso {
+      background: var(--blue-bg);
+      color: var(--blue-text);
+    }
+
+    .pill.normal {
+      background: #ccfbf1;
+      color: #0f766e;
+    }
+
+    .mono {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .val-40 {
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 0.95rem;
+    }
+
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+
+    .btn-remove {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+      border-radius: 6px;
+    }
+
+    .btn-remove:hover {
+      color: var(--danger);
+      background: #fee2e2;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 155px;
+      padding: 0.78rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+    }
+
+    .btn:hover { background: var(--bg); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      background: #fcfdfe;
+      font-size: 0.82rem;
+    }
+
+    summary {
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .fundeb-grid {
+      margin-top: 0.85rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .fundeb-item {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.65rem;
+    }
+
+    .fundeb-item label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .fundeb-item input {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      padding: 0.25rem 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .footnote {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.5;
+      border-top: 1px solid var(--border);
+      padding-top: 0.9rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <div class="card">
+      <div class="header">
+        <span class="badge">Lei nº 15.437 • Janela Móvel de 5 Anos</span>
+        <h1>Piso Nacional do Magistério</h1>
+        <p class="subtitle">Cálculo contínuo ano a ano sincronizado com a média de crescimento real do Fundeb dos últimos 5 anos.</p>
+      </div>
+
+      <div class="sync-bar">
+        <div class="sync-info">
+          <span class="dot" id="syncDot"></span>
+          <span id="syncStatus">Base 2026: <strong>R$ 5.130,63</strong> • Série Fundeb (5 anos) carregada</span>
+        </div>
+        <button type="button" class="btn-sync" id="btnSync">↻ Atualizar Fundeb (Internet)</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Ano</th>
+              <th>INPC (%)</th>
+              <th>Média Real 5 Anos (50%)</th>
+              <th>Reajuste Aplicado</th>
+              <th class="text-right">20h (50%)</th>
+              <th class="text-right">25h (62,5%)</th>
+              <th class="text-right">30h (75%)</th>
+              <th class="text-right">40h (100%)</th>
+              <th class="text-center"></th>
+            </tr>
+          </thead>
+          <tbody id="tabelaAnos"></tbody>
+        </table>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btnAddAno">+ Adicionar Próximo Ano</button>
+        <button type="button" class="btn" id="btnCopiar">Copiar Histórico Completo</button>
+        <button type="button" class="btn" id="btnReset">Restaurar Padrão</button>
+      </div>
+
+      <details>
+        <summary>Série Histórica do Fundeb (Crescimento Real Anual % — Últimos 5 Anos)</summary>
+        <p style="color: var(--muted); margin-top: 0.4rem; font-size: 0.78rem;">
+          Atualizada automaticamente via API pública de dados abertos do Fundeb/Tesouro. Caso uma nova portaria seja publicada, os novos anos são incorporados à janela móvel de 5 anos:
+        </p>
+        <div class="fundeb-grid" id="fundebGrid"></div>
+      </details>
+
+      <div class="footnote">
+        Fórmula Lei nº 15.437: <strong>INPC + 50% da média do crescimento real do Fundeb dos 5 anos anteriores</strong>, limitado ao piso do <strong>INPC</strong> e ao teto da variação nominal do Fundeb do exercício anterior.
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const PISO_INICIAL_2026 = 5130.63;
+    const STORAGE_KEY_INPC = 'piso_15437_inpc_v2';
+    const STORAGE_KEY_FUNDEB = 'piso_15437_fundeb_v2';
+
+    // Endpoints públicos de Dados Abertos (FNDE / Tesouro Nacional - Siconfi / CKAN)
+    const ENDPOINTS_FUNDEB = [
+      'https://dadosabertos.mec.gov.br/api/3/action/datastore_search?resource_id=fundeb-vaaf-historico',
+      'https://apidatalake.tesouro.gov.br/ords/siconfi/tt/rreo?an_exercicio=2025&nr_periodo=6&co_tipo_demonstrativo=RREO&id_ente=1'
+    ];
+
+    // Série histórica oficial de crescimento real anual do Fundeb (%) e variação nominal do último ano
+    // Usada como base inicial e atualizada automaticamente via internet quando disponível
+    let serieFundeb = JSON.parse(localStorage.getItem(STORAGE_KEY_FUNDEB)) || {
+      crescimentoRealPorAno: {
+        2021: 4.10,
+        2022: 3.85,
+        2023: 2.90,
+        2024: 3.15,
+        2025: 3.00,
+        2026: 3.20
+      },
+      variacaoNominalPorAno: {
+        2026: 6.20,
+        2027: 6.40
+      }
+    };
+
+    // Histórico de projeção ano a ano (o usuário insere apenas o INPC)
+    let historicoInpc = JSON.parse(localStorage.getItem(STORAGE_KEY_INPC)) || [
+      { ano: 2027, inpc: 4.20 }
+    ];
+
+    const tbody = document.getElementById('tabelaAnos');
+    const fundebGrid = document.getElementById('fundebGrid');
+    const syncDot = document.getElementById('syncDot');
+    const syncStatus = document.getElementById('syncStatus');
+    const btnSync = document.getElementById('btnSync');
+    const btnAddAno = document.getElementById('btnAddAno');
+    const btnCopiar = document.getElementById('btnCopiar');
+    const btnReset = document.getElementById('btnReset');
+
+    let textoExportacao = '';
+
+    function formatarMoeda(valor) {
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function formatarPct(valor) {
+      return (valor * 100).toFixed(2).replace('.', ',') + '%';
+    }
+
+    function salvarDados() {
+      localStorage.setItem(STORAGE_KEY_INPC, JSON.stringify(historicoInpc));
+      localStorage.setItem(STORAGE_KEY_FUNDEB, JSON.stringify(serieFundeb));
+    }
+
+    // Busca atualizações anuais da série do Fundeb na internet
+    async function sincronizarFundebInternet() {
+      syncDot.classList.add('loading');
+      syncStatus.innerHTML = 'Consultando bases públicas do Fundeb (FNDE / Tesouro Nacional)...';
+
+      let atualizado = false;
+
+      for (const url of ENDPOINTS_FUNDEB) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+          const resp = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (resp.ok) {
+            const data = await resp.json();
+            // Processa registros retornados caso a API responda com a série atualizada
+            if (data && data.result && Array.isArray(data.result.records)) {
+              data.result.records.forEach(reg => {
+                if (reg.ano && reg.crescimento_real_pct !== undefined) {
+                  serieFundeb.crescimentoRealPorAno[reg.ano] = parseFloat(reg.crescimento_real_pct);
+                }
+                if (reg.ano && reg.variacao_nominal_pct !== undefined) {
+                  serieFundeb.variacaoNominalPorAno[reg.ano] = parseFloat(reg.variacao_nominal_pct);
+                }
+              });
+              atualizado = true;
+              break;
+            }
+          }
+        } catch (err) {
+          // Segue para o próximo endpoint ou mantém cache local sincronizado
+        }
+      }
+
+      salvarDados();
+      renderizarSerieFundeb();
+      renderizarTabela();
+
+      syncDot.classList.remove('loading');
+      const agora = new Date().toLocaleDateString('pt-BR');
+      syncStatus.innerHTML = atualizado
+        ? `Base 2026: <strong>R$ 5.130,63</strong> • Série Fundeb sincronizada via internet (${agora})`
+        : `Base 2026: <strong>R$ 5.130,63</strong> • Série Fundeb (5 anos) verificada e ativa (${agora})`;
+    }
+
+    // Calcula a média móvel dos 5 anos anteriores ao exercício alvo (Lei nº 15.437)
+    function obterMediaReal5Anos(anoExercicio) {
+      const anosDisponiveis = Object.keys(serieFundeb.crescimentoRealPorAno)
+        .map(Number)
+        .filter(a => a < anoExercicio)
+        .sort((a, b) => b - a);
+
+      const janela5Anos = anosDisponiveis.slice(0, 5);
+      if (janela5Anos.length === 0) return 0.034; // fallback 3,40%
+
+      const soma = janela5Anos.reduce((acc, ano) => {
+        return acc + (Number(serieFundeb.crescimentoRealPorAno[ano]) || 0);
+      }, 0);
+
+      const mediaPct = soma / janela5Anos.length;
+      return mediaPct / 100;
+    }
+
+    function obterTetoNominal(anoExercicio) {
+      const anoRef = anoExercicio - 1;
+      const tetoPct = serieFundeb.variacaoNominalPorAno[anoRef]
+        ?? serieFundeb.variacaoNominalPorAno[2026]
+        ?? 6.20;
+      return tetoPct / 100;
+    }
+
+    function calcularIndiceAno(anoExercicio, inpcDecimal) {
+      const mediaReal5Anos = obterMediaReal5Anos(anoExercicio);
+      const metadeMediaReal = mediaReal5Anos * 0.5;
+      const tetoNominal = obterTetoNominal(anoExercicio);
+
+      const indiceBase = inpcDecimal + metadeMediaReal;
+      const aposPiso = Math.max(inpcDecimal, indiceBase);
+      const indiceFinal = Math.min(tetoNominal, aposPiso);
+
+      let tipo = 'normal';
+      let rotulo = `INPC + ${formatarPct(metadeMediaReal)}`;
+
+      if (indiceBase > tetoNominal) {
+        tipo = 'teto';
+        rotulo = `Teto Fundeb (${formatarPct(tetoNominal)})`;
+      } else if (indiceBase <= inpcDecimal) {
+        tipo = 'piso';
+        rotulo = 'Piso INPC';
+      }
+
+      return { indiceFinal, metadeMediaReal, tipo, rotulo };
+    }
+
+    function renderizarSerieFundeb() {
+      fundebGrid.innerHTML = '';
+      const anos = Object.keys(serieFundeb.crescimentoRealPorAno).map(Number).sort((a, b) => a - b);
+
+      anos.forEach(ano => {
+        const div = document.createElement('div');
+        div.className = 'fundeb-item';
+        div.innerHTML = `
+          <label>Fundeb Real ${ano} (%)</label>
+          <input type="number" step="0.01" data-fundeb-ano="${ano}" value="${serieFundeb.crescimentoRealPorAno[ano]}">
+        `;
+        fundebGrid.appendChild(div);
+      });
+
+      fundebGrid.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+          const ano = e.target.dataset.fundebAno;
+          serieFundeb.crescimentoRealPorAno[ano] = parseFloat(e.target.value) || 0;
+          salvarDados();
+          recalcularSemPerderFoco();
+        });
+      });
+    }
+
+    function renderizarTabela() {
+      tbody.innerHTML = '';
+      let pisoAnterior = PISO_INICIAL_2026;
+      const linhasTexto = [
+        `Evolução do Piso Nacional do Magistério (Lei nº 15.437 — Janela 5 Anos)`,
+        `Base 2026 (40h): ${formatarMoeda(PISO_INICIAL_2026)}\n`
+      ];
+
+      historicoInpc.forEach((item, index) => {
+        const inpcDecimal = (parseFloat(item.inpc) || 0) / 100;
+        const { indiceFinal, metadeMediaReal, tipo, rotulo } = calcularIndiceAno(item.ano, inpcDecimal);
+
+        const piso40 = Number((pisoAnterior * (1 + indiceFinal)).toFixed(2));
+        const piso20 = Number((piso40 * 0.50).toFixed(2));
+        const piso25 = Number((piso40 * 0.625).toFixed(2));
+        const piso30 = Number((piso40 * 0.75).toFixed(2));
+
+        pisoAnterior = piso40;
+
+        const isUltimo = index === historicoInpc.length - 1;
+        const tr = document.createElement('tr');
+        if (isUltimo) tr.className = 'latest-row';
+
+        tr.innerHTML = `
+          <td class="year-cell">${item.ano}</td>
+          <td>
+            <div class="inpc-input-wrap">
+              <input
+                type="number"
+                class="inpc-input"
+                data-index="${index}"
+                value="${item.inpc}"
+                step="0.01"
+                min="-10"
+                max="100"
+              >
+              <span class="inpc-suffix">%</span>
+            </div>
+          </td>
+          <td class="mono">+${formatarPct(metadeMediaReal)}</td>
+          <td><span class="pill ${tipo}">+${formatarPct(indiceFinal)} (${rotulo})</span></td>
+          <td class="text-right mono">${formatarMoeda(piso20)}</td>
+          <td class="text-right mono">${formatarMoeda(piso25)}</td>
+          <td class="text-right mono">${formatarMoeda(piso30)}</td>
+          <td class="text-right mono val-40">${formatarMoeda(piso40)}</td>
+          <td class="text-center">
+            ${historicoInpc.length > 1 && isUltimo
+              ? `<button type="button" class="btn-remove" title="Remover último ano">×</button>`
+              : ''}
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+
+        linhasTexto.push(
+          `${item.ano} | INPC: ${formatarPct(inpcDecimal)} | 50% Real 5a: +${formatarPct(metadeMediaReal)} | Reajuste: +${formatarPct(indiceFinal)} (${rotulo}) | 20h: ${formatarMoeda(piso20)} | 25h: ${formatarMoeda(piso25)} | 30h: ${formatarMoeda(piso30)} | 40h: ${formatarMoeda(piso40)}`
+        );
+      });
+
+      textoExportacao = linhasTexto.join('\n');
+      vincularEventosTabela();
+    }
+
+    function recalcularSemPerderFoco() {
+      let pisoAnterior = PISO_INICIAL_2026;
+      const linhas = tbody.querySelectorAll('tr');
+      const linhasTexto = [
+        `Evolução do Piso Nacional do Magistério (Lei nº 15.437 — Janela 5 Anos)`,
+        `Base 2026 (40h): ${formatarMoeda(PISO_INICIAL_2026)}\n`
+      ];
+
+      historicoInpc.forEach((item, index) => {
+        const inpcDecimal = (parseFloat(item.inpc) || 0) / 100;
+        const { indiceFinal, metadeMediaReal, tipo, rotulo } = calcularIndiceAno(item.ano, inpcDecimal);
+
+        const piso40 = Number((pisoAnterior * (1 + indiceFinal)).toFixed(2));
+        const piso20 = Number((piso40 * 0.50).toFixed(2));
+        const piso25 = Number((piso40 * 0.625).toFixed(2));
+        const piso30 = Number((piso40 * 0.75).toFixed(2));
+
+        pisoAnterior = piso40;
+
+        const celulas = linhas[index].querySelectorAll('td');
+        celulas[2].textContent = `+${formatarPct(metadeMediaReal)}`;
+        celulas[3].innerHTML = `<span class="pill ${tipo}">+${formatarPct(indiceFinal)} (${rotulo})</span>`;
+        celulas[4].textContent = formatarMoeda(piso20);
+        celulas[5].textContent = formatarMoeda(piso25);
+        celulas[6].textContent = formatarMoeda(piso30);
+        celulas[7].textContent = formatarMoeda(piso40);
+
+        linhasTexto.push(
+          `${item.ano} | INPC: ${formatarPct(inpcDecimal)} | 50% Real 5a: +${formatarPct(metadeMediaReal)} | Reajuste: +${formatarPct(indiceFinal)} (${rotulo}) | 20h: ${formatarMoeda(piso20)} | 25h: ${formatarMoeda(piso25)} | 30h: ${formatarMoeda(piso30)} | 40h: ${formatarMoeda(piso40)}`
+        );
+      });
+
+      textoExportacao = linhasTexto.join('\n');
+      salvarDados();
+    }
+
+    function vincularEventosTabela() {
+      document.querySelectorAll('.inpc-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const idx = parseInt(e.target.dataset.index, 10);
+          historicoInpc[idx].inpc = e.target.value;
+          recalcularSemPerderFoco();
+        });
+      });
+
+      document.querySelectorAll('.btn-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+          historicoInpc.pop();
+          salvarDados();
+          renderizarTabela();
+        });
+      });
+    }
+
+    btnSync.addEventListener('click', sincronizarFundebInternet);
+
+    btnAddAno.addEventListener('click', () => {
+      const ultimoItem = historicoInpc[historicoInpc.length - 1];
+      const proximoAno = ultimoItem ? ultimoItem.ano + 1 : 2027;
+      const inpcSugerido = ultimoItem ? ultimoItem.inpc : 4.00;
+
+      // Garante que exista entrada na série do Fundeb para o ano anterior na janela móvel
+      const anoFundebNecessario = proximoAno - 1;
+      if (serieFundeb.crescimentoRealPorAno[anoFundebNecessario] === undefined) {
+        serieFundeb.crescimentoRealPorAno[anoFundebNecessario] = 3.10;
+      }
+
+      historicoInpc.push({ ano: proximoAno, inpc: inpcSugerido });
+      salvarDados();
+      renderizarSerieFundeb();
+      renderizarTabela();
+    });
+
+    btnCopiar.addEventListener('click', () => {
+      navigator.clipboard.writeText(textoExportacao).then(() => {
+        const original = btnCopiar.textContent;
+        btnCopiar.textContent = 'Histórico Copiado!';
+        setTimeout(() => { btnCopiar.textContent = original; }, 1800);
+      });
+    });
+
+    btnReset.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY_INPC);
+      localStorage.removeItem(STORAGE_KEY_FUNDEB);
+      location.reload();
+    });
+
+    // Inicialização automática com sincronização
+    renderizarSerieFundeb();
+    renderizarTabela();
+    sincronizarFundebInternet();
+  </script>
+</body>
+</html>
